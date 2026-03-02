@@ -10,19 +10,75 @@ from sklearn.metrics import classification_report, roc_curve, auc
 
 
 
-# -----------------------------
+
 # 1. قراءة البيانات
 # -----------------------------
 df = pd.read_csv("synthetic_adni_data.csv")
 
-X = df[['Age','MMSE','BDNF','Tau','AmyloidBeta','Diabetes','Hypertension']]
-y = df['Diagnosis']
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-scaler = StandardScaler()
-X_train_scaled = scaler.fit_transform(X_train)
-X_test_scaled = scaler.transform(X_test)
+
+
+
+
+
+cols = [
+    'MMSE','Tau','BDNF','AmyloidBeta',
+]
+
+# مصفوفة الترابط
+corr = df[cols].corr()
+
+# رسم Heatmap
+plt.figure(figsize=(14,10))
+sns.heatmap(corr, annot=True, cmap="coolwarm", fmt=".2f")
+plt.title("Correlation Heatmap of Alzheimer Risk Factors")
+plt.savefig("Correlation Heatmap of Alzheimer Biomarkers.png")
+plt.show()
+
+
+
+
+
+
+
+
+
+correlations = df[['MMSE','Tau','BDNF','AmyloidBeta','Diagnosis']].corr()["Diagnosis"].drop("Diagnosis")
+
+plt.figure(figsize=(8,6))
+sns.barplot(x=correlations.index, y=correlations.values, color="gray")
+plt.title("Correlation with DiseaseStatus")
+plt.ylabel("Correlation Coefficient")
+plt.savefig("Correlation Coefficient.png")
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+df['DiagnosisBinary'] = (df['Diagnosis'] == 2).astype(int)
+
+df['AmyloidGroup'] = pd.qcut(df['AmyloidBeta'], 5)
+
+amyloid_risk = df.groupby('AmyloidGroup')['DiagnosisBinary'].mean()
+
+plt.figure(figsize=(8,5))
+plt.plot(amyloid_risk.index.astype(str), amyloid_risk.values, marker='o')
+plt.xticks(rotation=45)
+plt.xlabel("Amyloid Beta Group")
+plt.ylabel("Risk of Alzheimer")
+plt.title("Amyloid Level vs Alzheimer Risk")
+plt.tight_layout()
+plt.savefig("Amyloid Level vs Alzheimer Risk.png")
+plt.show()
+
 
 
 
@@ -128,55 +184,14 @@ plt.show()
 
 
 
-cols = [
-    'MMSE','Tau','BDNF','AmyloidBeta','Diagnosis'
-]
+X = df[['Age','MMSE','BDNF','Tau','AmyloidBeta','Diabetes','Hypertension']]
+y = df['Diagnosis']
 
-# مصفوفة الترابط
-corr = df[cols].corr()
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# رسم Heatmap
-plt.figure(figsize=(14,10))
-sns.heatmap(corr, annot=True, cmap="coolwarm", fmt=".2f")
-plt.title("Correlation Heatmap of Alzheimer Risk Factors")
-plt.savefig("Correlation Heatmap of Alzheimer Biomarkers.png")
-plt.show()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-df['DiagnosisBinary'] = (df['Diagnosis'] == 2).astype(int)
-
-df['AmyloidGroup'] = pd.qcut(df['AmyloidBeta'], 5)
-
-amyloid_risk = df.groupby('AmyloidGroup')['DiagnosisBinary'].mean()
-
-plt.figure(figsize=(8,5))
-plt.plot(amyloid_risk.index.astype(str), amyloid_risk.values, marker='o')
-plt.xticks(rotation=45)
-plt.xlabel("Amyloid Beta Group")
-plt.ylabel("Risk of Alzheimer")
-plt.title("Amyloid Level vs Alzheimer Risk")
-plt.tight_layout()
-plt.savefig("Amyloid Level vs Alzheimer Risk.png")
-plt.show()
-
-
-
-
-
-
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
 
 
 
